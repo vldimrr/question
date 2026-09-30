@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>One Question...</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -15,11 +15,11 @@
         <h1>Enter Password</h1>
 
         <div class="password-input-group">
-            <input type="password" id="password" placeholder="Enter the secret code...">
+            <input type="password" id="password" placeholder="Enter the secret code..." autocomplete="off">
             <button onclick="checkPassword()">Enter</button>
         </div>
 
-        <p class="password-hint">Hint: It's your nickname! *in lowercase*</p>
+        <p class="password-hint">Hint: It's your name! *in lowercase*</p>
     </div>
 
     <div class="vlad-footer">
@@ -35,8 +35,8 @@
     <img src="bearcute.jpg" class="top-image" alt="Cute bear">
 
     <h1>
-        <b>Hi elah!</b><br>
-        Pwede ba kitang yayain lumabas?
+        <b>Hi Elah!</b><br>
+        Would you like to go on a date with me?
     </h1>
 
     <div class="button-row">
@@ -47,7 +47,7 @@
     <img id="popupImage1" class="floating-image hidden" src="hang.jpeg" alt="Sad 1">
     <img id="popupImage2" class="floating-image hidden" src="cryingcat.jpeg" alt="Sad 2">
 
-    <video id="noVideo" class="hidden" controls>
+    <video id="noVideo" class="hidden" controls playsinline>
         <source src="coma.mp4" type="video/mp4">
     </video>
 
@@ -76,7 +76,7 @@
 
             <div class="popup-field" style="--i:4">
                 <label for="placeInput">📍 Pick a place</label>
-                <input type="text" id="placeInput" placeholder="Where should we go?" maxlength="100">
+                <input type="text" id="placeInput" placeholder="Where should we go?" maxlength="100" autocomplete="off" enterkeyhint="done">
             </div>
 
             <p id="popupError" class="popup-error" aria-live="polite"></p>
@@ -100,7 +100,7 @@
 <script>
 /* ========== CONFIG ========== */
 const CORRECT_PASSWORD = "elah";
-const WEBHOOK_URL      = "https://discord.com/api/webhooks/1554760679117037608/fOZVdPlNRlBgAmdOF_G0-EgHwl7VjtwKXq3f-uunHR6hKdhHM7sFS7iO0SxgqZSo5K3v";
+const WEBHOOK_URL      = "PASTE_YOUR_DISCORD_WEBHOOK_URL_HERE";
 const THANK_YOU_PAGE   = "thankyou.html";
 const REDIRECT_DELAY   = 2200; // ms the thank-you popup stays before redirecting
 
@@ -111,6 +111,7 @@ const SHOW_VIDEO_AFTER = 6;
 let noClicks = 0;
 let submitting = false;
 const isMobile = window.innerWidth <= 768;
+const hasMouse = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
 const $ = (id) => document.getElementById(id);
 
@@ -158,8 +159,13 @@ function openDatePopup() {
     const overlay = $("datePopupOverlay");
     overlay.classList.add("open");
     overlay.setAttribute("aria-hidden", "false");
+    overlay.scrollTop = 0;
 
-    setTimeout(() => $("dateInput").focus(), 450);
+    // Only auto-focus on desktop. On phones this would instantly pop open the
+    // date picker / keyboard before she even sees the form.
+    if (hasMouse) {
+        setTimeout(() => $("dateInput").focus(), 450);
+    }
 }
 
 function closeDatePopup() {
@@ -167,6 +173,7 @@ function closeDatePopup() {
     const overlay = $("datePopupOverlay");
     overlay.classList.remove("open");
     overlay.setAttribute("aria-hidden", "true");
+    if (document.activeElement) document.activeElement.blur();
 }
 
 function yesClicked() {
@@ -182,7 +189,6 @@ async function confirmDate() {
 
     if (!date) {
         error.textContent = "Please choose a date.";
-        $("dateInput").focus();
         return;
     }
 
@@ -194,11 +200,11 @@ async function confirmDate() {
 
     if (new Date(date + "T00:00:00") < getTomorrow()) {
         error.textContent = "Please choose a future date.";
-        $("dateInput").focus();
         return;
     }
 
     submitting = true;
+    if (document.activeElement) document.activeElement.blur(); // closes the keyboard
     $("confirmDateBtn").disabled = true;
     $("confirmDateBtn").textContent = "Sending...";
 
@@ -385,7 +391,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (e.key === "Escape") closeDatePopup();
     });
 
-    // Click outside the popup to close
+    // Tap outside the popup to close
     $("datePopupOverlay").addEventListener("click", (e) => {
         if (e.target === e.currentTarget) closeDatePopup();
     });
