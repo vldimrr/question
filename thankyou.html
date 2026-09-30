@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thank you 💕</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            background: linear-gradient(135deg, #fff0f5 0%, #ffe4e1 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #5b4b42;
+        }
+
+        .hidden { display: none !important; }
+
+        /* ========== NOTIFICATION ========== */
+
+        .notification {
+            position: fixed;
+            top: 14px;
+            left: 50%;
+            z-index: 1000;
+
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            width: min(92%, 380px);
+            padding: 14px 16px;
+            border-radius: 22px;
+
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 18px 50px rgba(91, 75, 66, 0.22);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+
+            cursor: pointer;
+            text-align: left;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+
+            opacity: 0;
+            pointer-events: none;
+            transform: translate(-50%, -160%) scale(0.95);
+
+            transition:
+                transform 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.4s ease;
+        }
+
+        .notification.show {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translate(-50%, 0) scale(1);
+            animation: notifNudge 2.4s ease-in-out 1.2s infinite;
+        }
+
+        .notification:active {
+            transform: translate(-50%, 0) scale(0.97);
+        }
+
+        .notification.tapped {
+            opacity: 0;
+            pointer-events: none;
+            transform: translate(-50%, -20px) scale(0.92);
+            animation: none;
+        }
+
+        @keyframes notifNudge {
+            0%, 100% { transform: translate(-50%, 0) scale(1); }
+            50%      { transform: translate(-50%, 3px) scale(1.015); }
+        }
+
+        .notif-icon {
+            flex: 0 0 auto;
+            width: 46px;
+            height: 46px;
+            border-radius: 13px;
+            background: linear-gradient(135deg, #f3a6c8, #f7c4da);
+            box-shadow: 0 6px 14px rgba(243, 166, 200, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .notif-body { flex: 1; min-width: 0; }
+
+        .notif-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .notif-title { font-weight: 700; font-size: 15px; color: #5b4b42; }
+        .notif-time  { font-size: 12px; color: #a1948c; }
+
+        .notif-text {
+            margin-top: 2px;
+            font-size: 14px;
+            color: #5b4b42;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .notif-hint {
+            margin-top: 3px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #f3a6c8;
+        }
+
+        /* ========== MESSAGE POPUP ========== */
+
+        .message-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+
+            background: rgba(91, 75, 66, 0);
+            backdrop-filter: blur(0);
+            -webkit-backdrop-filter: blur(0);
+
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+
+            transition:
+                opacity 0.45s ease,
+                background 0.45s ease,
+                backdrop-filter 0.55s ease,
+                -webkit-backdrop-filter 0.55s ease,
+                visibility 0s linear 0.55s;
+        }
+
+        .message-overlay.open {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+
+            background: rgba(91, 75, 66, 0.35);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+
+            transition-delay: 0s;
+        }
+
+        .message-card {
+            width: 100%;
+            max-width: 380px;
+            padding: 30px 26px;
+            border-radius: 28px;
+            background: rgba(255, 255, 255, 0.97);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 30px 80px rgba(91, 75, 66, 0.28);
+            text-align: center;
+
+            opacity: 0;
+            transform: translateY(40px) scale(0.85);
+
+            transition:
+                opacity 0.4s ease,
+                transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .message-overlay.open .message-card {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        /* staggered content */
+        .message-card > * {
+            opacity: 0;
+            transform: translateY(14px);
+            transition:
+                opacity 0.4s ease,
+                transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .message-overlay.open .message-card > * {
+            opacity: 1;
+            transform: translateY(0);
+            transition-delay: calc(0.15s + var(--i, 0) * 0.08s);
+        }
+
+        .message-image {
+            width: 130px;
+            border-radius: 20px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+            margin-bottom: 14px;
+        }
+
+        .message-heart {
+            font-size: 48px;
+            margin-bottom: 4px;
+            animation: heartbeat 1.3s ease-in-out infinite;
+        }
+
+        .message-card h1 {
+            margin: 0 0 12px;
+            font-size: 26px;
+            font-weight: 600;
+            color: #f3a6c8;
+        }
+
+        .message-text {
+            margin: 0 0 16px;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #5b4b42;
+        }
+
+        .date-details {
+            display: inline-block;
+            margin: 0 0 18px;
+            padding: 10px 16px;
+            border-radius: 14px;
+            background: #fff0f5;
+            border: 1px solid rgba(243, 166, 200, 0.35);
+            font-size: 14px;
+            font-weight: 600;
+            color: #5b4b42;
+        }
+
+        .message-sign {
+            margin: 0;
+            font-size: 15px;
+            color: #81736b;
+        }
+
+        .message-sign span {
+            color: #f3a6c8;
+            font-weight: 600;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50%      { transform: scale(1.15); }
+        }
+
+        /* ========== FLOATING HEARTS ========== */
+
+        .falling-heart {
+            position: fixed;
+            top: -40px;
+            z-index: 1;
+            pointer-events: none;
+            animation: fall linear forwards;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(110vh) rotate(360deg);
+                opacity: 0.4;
+            }
+        }
+
+        /* ========== FOOTER ========== */
+
+        .vlad-footer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .footer-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(243, 166, 200, 0.2);
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(5px);
+            animation: floatFooter 3s ease-in-out infinite;
+        }
+
+        .heart-pulse {
+            color: #f3a6c8;
+            font-size: 14px;
+            animation: heartbeat 1.5s ease-in-out infinite;
+        }
+
+        .footer-text {
+            color: #5b4b42;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+
+        .name { color: #f3a6c8; font-weight: 600; }
+
+        @keyframes floatFooter {
+            0%, 100% { transform: translateY(0); }
+            50%      { transform: translateY(-3px); }
+        }
+
+        @media (max-width: 480px) {
+            .vlad-footer { bottom: 10px; right: 50%; transform: translateX(50%); }
+            .message-card { padding: 26px 20px; }
+            .message-card h1 { font-size: 23px; }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- NOTIFICATION -->
+<div id="notification" class="notification" role="button" tabindex="0" aria-label="Open new message">
+    <div class="notif-icon">💌</div>
+    <div class="notif-body">
+        <div class="notif-top">
+            <span class="notif-title">Vlad</span>
+            <span class="notif-time">now</span>
+        </div>
+        <div class="notif-text">You have a new message, Elah 💕</div>
+        <div class="notif-hint">Tap to open</div>
+    </div>
+</div>
+
+<!-- MESSAGE POPUP -->
+<div id="messageOverlay" class="message-overlay" aria-hidden="true">
+    <div class="message-card" role="dialog" aria-modal="true" aria-labelledby="messageTitle">
+
+        <img src="bearcute.jpg" class="message-image" style="--i:0" alt="Cute bear" onerror="this.classList.add('hidden')">
+
+        <div class="message-heart" style="--i:1">💖</div>
+
+        <h1 id="messageTitle" style="--i:2">Thank you, Elah!</h1>
+
+        <p class="message-text" style="--i:3">
+            You made me really happy by saying yes. I can't wait to spend the day with you!
+        </p>
+
+        <div id="dateDetails" class="date-details hidden" style="--i:4"></div>
+
+        <p class="message-sign" style="--i:5">See you soon 💕<br>— <span>Vlad</span></p>
+
+    </div>
+</div>
+
+<!-- FOOTER -->
+<div class="vlad-footer">
+    <div class="footer-content">
+        <span class="heart-pulse">❤</span>
+        <span class="footer-text">made by <span class="name">vlad</span></span>
+    </div>
+</div>
+
+<script>
+/* ========== CONFIG ========== */
+const NOTIFICATION_DELAY = 1000; // ms after the page loads before the notification appears
+
+const $ = (id) => document.getElementById(id);
+let opened = false;
+
+/* ========== NOTIFICATION ========== */
+function showNotification() {
+    setTimeout(() => {
+        $("notification").classList.add("show");
+        if (navigator.vibrate) navigator.vibrate([80, 60, 80]);
+    }, NOTIFICATION_DELAY);
+}
+
+function openMessage() {
+    if (opened) return;
+    opened = true;
+
+    const notif = $("notification");
+    notif.classList.remove("show");
+    notif.classList.add("tapped");
+
+    setTimeout(() => {
+        const overlay = $("messageOverlay");
+        overlay.classList.add("open");
+        overlay.setAttribute("aria-hidden", "false");
+        startHearts();
+    }, 300);
+}
+
+/* ========== FALLING HEARTS ========== */
+function startHearts() {
+    const emojis = ["💗", "💕", "💖", "💞", "🌸"];
+
+    for (let i = 0; i < 28; i++) {
+        setTimeout(() => {
+            const h = document.createElement("div");
+            h.className = "falling-heart";
+            h.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            h.style.left = Math.random() * 100 + "vw";
+            h.style.fontSize = 16 + Math.random() * 22 + "px";
+            h.style.animationDuration = 4 + Math.random() * 4 + "s";
+            document.body.appendChild(h);
+            setTimeout(() => h.remove(), 9000);
+        }, i * 180);
+    }
+}
+
+/* ========== OPTIONAL DATE DETAILS ========== */
+/* Shows the date and place if index.html saved them (see note below) */
+function loadDetails() {
+    try {
+        const date = sessionStorage.getItem("dateChosen");
+        const place = sessionStorage.getItem("placeChosen");
+
+        if (date && place) {
+            const box = $("dateDetails");
+            box.textContent = `📅 ${date}  •  📍 ${place}`;
+            box.classList.remove("hidden");
+        }
+    } catch (e) {}
+}
+
+/* ========== EVENTS ========== */
+document.addEventListener("DOMContentLoaded", () => {
+    loadDetails();
+    showNotification();
+
+    $("notification").addEventListener("click", openMessage);
+    $("notification").addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") openMessage();
+    });
+});
+</script>
+
+</body>
+</html>

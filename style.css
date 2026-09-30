@@ -1,0 +1,619 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    height: 100vh;
+    width: 100vw;
+    background: linear-gradient(135deg, #fff0f5 0%, #ffe4e1 100%);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden;
+    color: #5b4b42;
+}
+
+.screen {
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+    position: relative;
+}
+
+.hidden {
+    display: none !important;
+}
+
+h1 {
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    margin: 10px 0 30px;
+    color: #5b4b42;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ==================== PASSWORD SCREEN ==================== */
+
+.password-container {
+    background: white;
+    padding: 40px 30px;
+    border-radius: 24px;
+    box-shadow: 0 20px 40px rgba(243, 166, 200, 0.15);
+    max-width: 400px;
+    width: 90%;
+    animation: fadeIn 0.6s ease;
+}
+
+.password-container h1 {
+    color: #f3a6c8;
+    margin-bottom: 30px;
+    font-size: 28px;
+}
+
+.password-input-group {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+#password {
+    flex: 1;
+    padding: 16px 20px;
+    border: 2px solid #f0f0f0;
+    border-radius: 16px;
+    font-size: 16px;
+    background: #fafafa;
+    transition: all 0.3s ease;
+}
+
+#password:focus {
+    outline: none;
+    border-color: #f3a6c8;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(243, 166, 200, 0.1);
+}
+
+.password-input-group button {
+    padding: 16px 24px;
+    background: #f3a6c8;
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+}
+
+.password-input-group button:hover {
+    background: #f095bb;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(243, 166, 200, 0.3);
+}
+
+.password-hint {
+    color: #999;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+/* ==================== QUESTION SCREEN ==================== */
+
+.top-image {
+    width: 180px;
+    border-radius: 20px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.button-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+    max-width: 100%;
+    min-height: 100px;
+    margin-top: 30px;
+    padding: 0 15px;
+    position: relative;
+}
+
+#yesBtn,
+#noBtn {
+    flex: 1;
+    min-width: 120px;
+    max-width: 200px;
+    padding: 16px 30px;
+    border: none;
+    border-radius: 999px;
+    background: #f3a6c8;
+    color: white;
+    font-size: 18px;
+    font-weight: 500;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    position: relative;
+    box-shadow: 0 6px 16px rgba(243, 166, 200, 0.25);
+}
+
+#yesBtn {
+    z-index: 5000;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Smooth glide, no overshoot */
+#noBtn {
+    z-index: 99999;
+    transition:
+        left 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+        top 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.25s ease,
+        box-shadow 0.3s ease;
+}
+
+#noBtn.moved {
+    position: fixed !important;
+    margin: 0;
+}
+
+#yesBtn:hover {
+    box-shadow: 0 10px 22px rgba(243, 166, 200, 0.35);
+}
+
+#noBtn:hover {
+    box-shadow: 0 10px 22px rgba(243, 166, 200, 0.35);
+}
+
+video {
+    width: 320px;
+    max-width: 90%;
+    margin-top: 30px;
+    border-radius: 18px;
+    box-shadow: 0 14px 35px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+}
+
+/* Floating images */
+.floating-image {
+    position: fixed;
+    z-index: 1500;
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 15px;
+    border: 4px solid white;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transform: scale(0.5) rotate(-10deg);
+    pointer-events: none;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.floating-image.active {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+    animation: float 3s ease-in-out infinite;
+}
+
+#popupImage1 { width: 180px; height: 180px; z-index: 1501; }
+#popupImage2 { width: 220px; height: 220px; z-index: 1502; }
+
+@keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50%      { transform: translateY(-15px) rotate(2deg); }
+}
+
+/* ==================== FOOTER ==================== */
+
+.vlad-footer {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10000;
+    pointer-events: none;
+}
+
+.footer-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 15px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(243, 166, 200, 0.2);
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(5px);
+    animation: floatFooter 3s ease-in-out infinite;
+}
+
+.heart-pulse {
+    color: #f3a6c8;
+    font-size: 14px;
+    animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+.footer-text {
+    color: #5b4b42;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+.name {
+    color: #f3a6c8;
+    font-weight: 600;
+}
+
+@keyframes floatFooter {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-3px); }
+}
+
+@keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.2); }
+}
+
+/* ==================== DATE / PLACE POPUP ==================== */
+
+.date-popup-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+
+    background: rgba(91, 75, 66, 0);
+    backdrop-filter: blur(0);
+    -webkit-backdrop-filter: blur(0);
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    transition:
+        opacity 0.45s ease,
+        background 0.45s ease,
+        backdrop-filter 0.55s ease,
+        -webkit-backdrop-filter 0.55s ease,
+        visibility 0s linear 0.55s;
+}
+
+.date-popup-overlay.open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+
+    background: rgba(91, 75, 66, 0.38);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+
+    transition-delay: 0s;
+}
+
+.date-popup {
+    width: 100%;
+    max-width: 360px;
+    padding: 28px 24px;
+    border-radius: 26px;
+    background: rgba(255, 255, 255, 0.97);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 30px 80px rgba(91, 75, 66, 0.28);
+    text-align: center;
+
+    opacity: 0;
+    transform: translateY(35px) scale(0.88);
+
+    transition:
+        opacity 0.4s ease,
+        transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.date-popup-overlay.open .date-popup {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+/* Staggered items: each uses --i set in the HTML */
+.popup-heart,
+.date-popup h2,
+.date-popup-description,
+.popup-field,
+.popup-error,
+.popup-buttons {
+    opacity: 0;
+    transform: translateY(14px);
+    transition:
+        opacity 0.4s ease,
+        transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.date-popup-overlay.open .popup-heart,
+.date-popup-overlay.open .date-popup h2,
+.date-popup-overlay.open .date-popup-description,
+.date-popup-overlay.open .popup-field,
+.date-popup-overlay.open .popup-error,
+.date-popup-overlay.open .popup-buttons {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: calc(0.1s + var(--i, 0) * 0.06s);
+}
+
+.popup-heart {
+    font-size: 40px;
+    margin-bottom: 6px;
+}
+
+.date-popup h2 {
+    margin: 0 0 8px;
+    color: #5b4b42;
+    font-size: 23px;
+}
+
+.date-popup-description {
+    margin: 0 0 22px;
+    color: #81736b;
+    font-size: 14px;
+}
+
+.popup-field {
+    text-align: left;
+    margin-bottom: 17px;
+}
+
+.popup-field label {
+    display: block;
+    margin-bottom: 7px;
+    color: #5b4b42;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.popup-field input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid rgba(243, 166, 200, 0.45);
+    border-radius: 12px;
+    background: white;
+    color: #5b4b42;
+    font-family: inherit;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.popup-field input:focus {
+    border-color: #f3a6c8;
+    box-shadow: 0 0 0 4px rgba(243, 166, 200, 0.14);
+}
+
+.popup-field input::placeholder {
+    color: #aaa;
+}
+
+.popup-error {
+    min-height: 18px;
+    margin: -5px 0 12px;
+    color: #d96b8c;
+    font-size: 13px;
+}
+
+.popup-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 5px;
+}
+
+.popup-buttons button {
+    flex: 1;
+    padding: 12px 15px;
+    border: none;
+    border-radius: 14px;
+    font-family: inherit;
+    font-size: 15px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.popup-buttons button:hover {
+    transform: translateY(-3px);
+}
+
+.popup-buttons button:active {
+    transform: scale(0.97);
+}
+
+.popup-buttons button:disabled {
+    opacity: 0.6;
+    cursor: default;
+    transform: none;
+}
+
+#cancelDateBtn {
+    background: #f1eeee;
+    color: #5b4b42;
+}
+
+#confirmDateBtn {
+    background: #f3a6c8;
+    color: white;
+    box-shadow: 0 6px 18px rgba(243, 166, 200, 0.3);
+}
+
+#confirmDateBtn:hover {
+    box-shadow: 0 9px 24px rgba(243, 166, 200, 0.4);
+}
+
+/* Form leaving animation */
+.popup-view {
+    transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.popup-view.leaving {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.97);
+}
+
+/* Thank-you view */
+.popup-thanks {
+    display: none;
+}
+
+.popup-thanks.show {
+    display: block;
+    animation: thanksIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.popup-thanks .popup-heart,
+.popup-thanks h2,
+.popup-thanks .date-popup-description {
+    opacity: 1;
+    transform: none;
+}
+
+.popup-thanks .popup-heart.big {
+    font-size: 54px;
+    animation: heartbeat 1.2s ease-in-out infinite;
+}
+
+.popup-thanks .date-popup-description {
+    margin-bottom: 4px;
+}
+
+@keyframes thanksIn {
+    from { opacity: 0; transform: translateY(15px) scale(0.92); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ==================== MOBILE ==================== */
+
+@media (max-width: 768px) {
+    body {
+        -webkit-tap-highlight-color: transparent;
+        -webkit-user-select: none;
+        user-select: none;
+    }
+
+    input, textarea, select {
+        font-size: 16px !important; /* prevents iOS zoom on focus */
+        -webkit-user-select: text;
+        user-select: text;
+    }
+
+    .password-container { padding: 30px 20px; max-width: 90%; }
+    .password-container h1 { font-size: 24px; margin-bottom: 20px; }
+
+    .password-input-group { flex-direction: column; gap: 15px; }
+    #password, .password-input-group button { width: 100%; padding: 18px 20px; }
+
+    .top-image { width: 140px; height: 140px; margin-bottom: 15px; }
+
+    h1 { font-size: 24px; margin: 5px 0 20px; padding: 0 15px; line-height: 1.3; }
+
+    .button-row { gap: 15px; margin-top: 20px; min-height: 70px; padding: 0 10px; }
+
+    #yesBtn, #noBtn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 110px;
+        max-width: 160px;
+        height: 50px;
+        padding: 14px 20px;
+        font-size: 16px;
+        touch-action: manipulation;
+    }
+
+    #noBtn.mobile-moved { position: fixed !important; }
+
+    .floating-image { width: 150px !important; height: 150px !important; }
+    #popupImage1 { width: 140px !important; height: 140px !important; }
+    #popupImage2 { width: 160px !important; height: 160px !important; }
+
+    video { width: 90%; max-width: 300px; margin-top: 20px; }
+
+    .vlad-footer { bottom: 15px; right: 50%; transform: translateX(50%); }
+    .footer-content { padding: 6px 12px; }
+    .footer-text { font-size: 12px; }
+}
+
+@media (max-width: 480px) {
+    .button-row { gap: 10px; padding: 0 8px; }
+
+    #yesBtn, #noBtn {
+        min-width: 100px;
+        max-width: 140px;
+        height: 48px;
+        padding: 12px 16px;
+        font-size: 15px;
+    }
+
+    .password-container { padding: 25px 15px; }
+    .password-container h1, h1 { font-size: 22px; }
+
+    .top-image { width: 120px; height: 120px; }
+
+    .floating-image { width: 130px !important; height: 130px !important; }
+    #popupImage1 { width: 120px !important; height: 120px !important; }
+    #popupImage2 { width: 140px !important; height: 140px !important; }
+
+    .vlad-footer { bottom: 10px; }
+
+    .date-popup { max-width: 330px; padding: 25px 20px; border-radius: 24px; }
+}
+
+@media (max-width: 360px) {
+    .button-row { flex-direction: column; gap: 12px; min-height: 120px; }
+
+    #yesBtn, #noBtn {
+        width: 100%;
+        max-width: 100%;
+        min-width: auto;
+    }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+    .screen { justify-content: flex-start; padding: 20px 10px 10px; }
+    .button-row { gap: 10px; min-height: 60px; margin-top: 15px; }
+
+    #yesBtn, #noBtn {
+        min-width: 100px;
+        max-width: 130px;
+        height: 45px;
+        padding: 10px 15px;
+        font-size: 14px;
+    }
+
+    .top-image { width: 100px; height: 100px; margin-bottom: 10px; }
+    h1 { font-size: 20px; margin: 5px 0 15px; }
+    .password-container { padding: 20px; margin-top: 20px; }
+}
+
+@supports (-webkit-touch-callout: none) {
+    body { height: -webkit-fill-available; }
+    .screen { min-height: -webkit-fill-available; }
+    #yesBtn, #noBtn { -webkit-appearance: none; appearance: none; }
+}
+
+@supports (padding: max(0px)) {
+    .button-row {
+        padding-left: max(10px, env(safe-area-inset-left));
+        padding-right: max(10px, env(safe-area-inset-right));
+    }
+}

@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One Question...</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- PASSWORD SCREEN -->
+<div id="passwordScreen" class="screen">
+    <div class="password-container">
+        <h1>Enter Password</h1>
+
+        <div class="password-input-group">
+            <input type="password" id="password" placeholder="Enter the secret code...">
+            <button onclick="checkPassword()">Enter</button>
+        </div>
+
+        <p class="password-hint">Hint: It's your nickname! *in lowercase*</p>
+    </div>
+
+    <div class="vlad-footer">
+        <div class="footer-content">
+            <span class="heart-pulse">❤</span>
+            <span class="footer-text">made by <span class="name">vlad</span></span>
+        </div>
+    </div>
+</div>
+
+<!-- QUESTION SCREEN -->
+<div id="questionScreen" class="screen hidden">
+    <img src="bearcute.jpg" class="top-image" alt="Cute bear">
+
+    <h1>
+        <b>Hi elah!</b><br>
+        Pwede ba kitang yayain lumabas?
+    </h1>
+
+    <div class="button-row">
+        <button id="yesBtn" onclick="yesClicked()">Yes</button>
+        <button id="noBtn" onclick="noClicked()">No</button>
+    </div>
+
+    <img id="popupImage1" class="floating-image hidden" src="hang.jpeg" alt="Sad 1">
+    <img id="popupImage2" class="floating-image hidden" src="cryingcat.jpeg" alt="Sad 2">
+
+    <video id="noVideo" class="hidden" controls>
+        <source src="coma.mp4" type="video/mp4">
+    </video>
+
+    <div class="vlad-footer">
+        <div class="footer-content">
+            <span class="heart-pulse">❤</span>
+            <span class="footer-text">made by <span class="name">vlad</span></span>
+        </div>
+    </div>
+</div>
+
+<!-- DATE / PLACE POPUP -->
+<div id="datePopupOverlay" class="date-popup-overlay" aria-hidden="true">
+    <div class="date-popup" role="dialog" aria-modal="true" aria-labelledby="datePopupTitle">
+
+        <!-- Step 1: form -->
+        <div id="popupForm" class="popup-view">
+            <div class="popup-heart" style="--i:0">💗</div>
+            <h2 id="datePopupTitle" style="--i:1">YAY! 💕</h2>
+            <p class="date-popup-description" style="--i:2">When and where should we go?</p>
+
+            <div class="popup-field" style="--i:3">
+                <label for="dateInput">📅 Pick a date</label>
+                <input type="date" id="dateInput">
+            </div>
+
+            <div class="popup-field" style="--i:4">
+                <label for="placeInput">📍 Pick a place</label>
+                <input type="text" id="placeInput" placeholder="Where should we go?" maxlength="100">
+            </div>
+
+            <p id="popupError" class="popup-error" aria-live="polite"></p>
+
+            <div class="popup-buttons" style="--i:5">
+                <button type="button" id="cancelDateBtn" onclick="closeDatePopup()">Go back</button>
+                <button type="button" id="confirmDateBtn" onclick="confirmDate()">Confirm 💗</button>
+            </div>
+        </div>
+
+        <!-- Step 2: thank you -->
+        <div id="popupThanks" class="popup-view popup-thanks">
+            <div class="popup-heart big">💖</div>
+            <h2>Thank you! 💕</h2>
+            <p class="date-popup-description" id="thanksDetails"></p>
+        </div>
+
+    </div>
+</div>
+
+<script>
+/* ========== CONFIG ========== */
+const CORRECT_PASSWORD = "elah";
+const WEBHOOK_URL      = "https://discord.com/api/webhooks/1554760679117037608/fOZVdPlNRlBgAmdOF_G0-EgHwl7VjtwKXq3f-uunHR6hKdhHM7sFS7iO0SxgqZSo5K3v";
+const THANK_YOU_PAGE   = "thankyou.html";
+const REDIRECT_DELAY   = 2200; // ms the thank-you popup stays before redirecting
+
+const GROW_YES_AFTER = 3;
+const SHOW_VIDEO_AFTER = 6;
+
+/* ========== STATE ========== */
+let noClicks = 0;
+let submitting = false;
+const isMobile = window.innerWidth <= 768;
+
+const $ = (id) => document.getElementById(id);
+
+/* ========== PASSWORD ========== */
+function checkPassword() {
+    const input = $("password").value.trim().toLowerCase();
+
+    if (input === CORRECT_PASSWORD) {
+        $("passwordScreen").classList.add("hidden");
+        $("questionScreen").classList.remove("hidden");
+        setMinDate();
+    } else {
+        alert("Wrong password. Try again!");
+        $("password").value = "";
+        $("password").focus();
+    }
+}
+
+/* ========== DATE HELPERS ========== */
+function getTomorrow() {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() + 1);
+    return d;
+}
+
+function setMinDate() {
+    const t = getTomorrow();
+    const y = t.getFullYear();
+    const m = String(t.getMonth() + 1).padStart(2, "0");
+    const d = String(t.getDate()).padStart(2, "0");
+    $("dateInput").min = `${y}-${m}-${d}`;
+}
+
+/* ========== POPUP ========== */
+function openDatePopup() {
+    $("popupError").textContent = "";
+    $("dateInput").value = "";
+    $("placeInput").value = "";
+
+    $("popupThanks").classList.remove("show");
+    $("popupForm").classList.remove("leaving");
+    $("popupForm").style.display = "";
+
+    const overlay = $("datePopupOverlay");
+    overlay.classList.add("open");
+    overlay.setAttribute("aria-hidden", "false");
+
+    setTimeout(() => $("dateInput").focus(), 450);
+}
+
+function closeDatePopup() {
+    if (submitting) return;
+    const overlay = $("datePopupOverlay");
+    overlay.classList.remove("open");
+    overlay.setAttribute("aria-hidden", "true");
+}
+
+function yesClicked() {
+    openDatePopup();
+}
+
+async function confirmDate() {
+    if (submitting) return;
+
+    const date = $("dateInput").value;
+    const place = $("placeInput").value.trim();
+    const error = $("popupError");
+
+    if (!date) {
+        error.textContent = "Please choose a date.";
+        $("dateInput").focus();
+        return;
+    }
+
+    if (!place) {
+        error.textContent = "Please enter a place.";
+        $("placeInput").focus();
+        return;
+    }
+
+    if (new Date(date + "T00:00:00") < getTomorrow()) {
+        error.textContent = "Please choose a future date.";
+        $("dateInput").focus();
+        return;
+    }
+
+    submitting = true;
+    $("confirmDateBtn").disabled = true;
+    $("confirmDateBtn").textContent = "Sending...";
+
+    const [year, month, day] = date.split("-");
+    const formattedDate = `${month}/${day}/${year}`;
+
+    await sendWebhook(
+        `💖 SHE SAID YES!\n\n` +
+        `👤 Elah accepted the date invitation.\n\n` +
+        `📅 Date: ${formattedDate}\n` +
+        `📍 Place: ${place}`
+    );
+
+    showThankYou(formattedDate, place);
+}
+
+function showThankYou(formattedDate, place) {
+    // Save the choice so thankyou.html can display it
+    try {
+        sessionStorage.setItem("dateChosen", formattedDate);
+        sessionStorage.setItem("placeChosen", place);
+    } catch (e) {}
+
+    const form = $("popupForm");
+    const thanks = $("popupThanks");
+
+    $("thanksDetails").textContent = `📅 ${formattedDate}  •  📍 ${place}`;
+
+    form.classList.add("leaving");
+
+    setTimeout(() => {
+        form.style.display = "none";
+        thanks.classList.add("show");
+    }, 350);
+
+    setTimeout(() => {
+        window.location.href = THANK_YOU_PAGE;
+    }, REDIRECT_DELAY);
+}
+
+/* ========== NO BUTTON ========== */
+function noClicked() {
+    noClicks++;
+
+    sendWebhook(
+        `❌ SHE SAID NO!\n\n` +
+        `👤 Elah declined the date invitation.\n` +
+        `🔢 No clicks: ${noClicks}`
+    );
+
+    moveNoButton();
+
+    if (noClicks === 2) showFloatingImage(1);
+    if (noClicks === 4) showFloatingImage(2);
+
+    if (noClicks >= GROW_YES_AFTER) {
+        const scale = 1 + (noClicks - GROW_YES_AFTER + 1) * 0.08;
+        $("yesBtn").style.transform = `scale(${scale})`;
+    }
+
+    if (noClicks === SHOW_VIDEO_AFTER) {
+        const video = $("noVideo");
+        video.classList.remove("hidden");
+        video.play().catch(() => {});
+
+        const yes = $("yesBtn");
+        yes.style.position = "fixed";
+        yes.style.left = "50%";
+        yes.style.top = "50%";
+        yes.style.transform = "translate(-50%, -50%) scale(2)";
+    }
+}
+
+function moveNoButton() {
+    const btn = $("noBtn");
+    const margin = 15;
+    const firstMove = !btn.classList.contains("moved");
+
+    if (firstMove) {
+        // Pin the button exactly where it is right now (no animation)
+        const rect = btn.getBoundingClientRect();
+
+        // Placeholder keeps the row layout from collapsing
+        const spacer = document.createElement("div");
+        spacer.style.flex = "0 0 auto";
+        spacer.style.width = `${rect.width}px`;
+        spacer.style.height = `${rect.height}px`;
+        btn.parentNode.insertBefore(spacer, btn);
+
+        btn.style.transition = "none";
+        btn.classList.add("moved");
+        if (isMobile) btn.classList.add("mobile-moved");
+
+        btn.style.width = `${rect.width}px`;
+        btn.style.height = `${rect.height}px`;
+        btn.style.left = `${rect.left}px`;
+        btn.style.top = `${rect.top}px`;
+
+        void btn.offsetWidth; // force reflow so the start position is registered
+    }
+
+    const maxX = window.innerWidth - btn.offsetWidth - margin;
+    const maxY = window.innerHeight - btn.offsetHeight - margin;
+
+    const x = margin + Math.random() * Math.max(0, maxX - margin);
+    const y = margin + Math.random() * Math.max(0, maxY - margin);
+
+    const slide = () => {
+        btn.style.transition = ""; // back to the smooth CSS transition
+        btn.style.left = `${x}px`;
+        btn.style.top = `${y}px`;
+
+        btn.style.transform = "scale(1.05)";
+        setTimeout(() => (btn.style.transform = "scale(1)"), 200);
+    };
+
+    if (firstMove) {
+        // wait two frames so the pinned position is painted before sliding
+        requestAnimationFrame(() => requestAnimationFrame(slide));
+    } else {
+        slide();
+    }
+}
+
+/* ========== FLOATING IMAGES ========== */
+function showFloatingImage(number) {
+    const img = $(`popupImage${number}`);
+    if (!img || !img.classList.contains("hidden")) return;
+
+    const size = isMobile ? 150 : 180;
+    const x = Math.random() * (window.innerWidth - size - 40) + 20;
+    const y = Math.random() * (window.innerHeight - size - 40) + 20;
+
+    img.style.left = `${x}px`;
+    img.style.top = `${y}px`;
+    img.classList.remove("hidden");
+
+    setTimeout(() => img.classList.add("active"), 10);
+}
+
+/* ========== DISCORD WEBHOOK ========== */
+async function sendWebhook(message) {
+    if (!WEBHOOK_URL || WEBHOOK_URL.startsWith("PASTE_")) {
+        console.warn("Discord webhook URL is not configured.");
+        return;
+    }
+
+    try {
+        const res = await fetch(WEBHOOK_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ content: message })
+        });
+
+        if (!res.ok) console.error("Discord webhook failed:", res.status);
+    } catch (err) {
+        console.error("Webhook error:", err);
+    }
+}
+
+/* ========== EVENTS ========== */
+window.addEventListener("resize", () => {
+    const btn = $("noBtn");
+    if (!btn.classList.contains("moved")) return;
+
+    const margin = 15;
+    const maxX = window.innerWidth - btn.offsetWidth - margin;
+    const maxY = window.innerHeight - btn.offsetHeight - margin;
+
+    btn.style.left = `${Math.max(margin, Math.min(parseInt(btn.style.left) || 0, maxX))}px`;
+    btn.style.top = `${Math.max(margin, Math.min(parseInt(btn.style.top) || 0, maxY))}px`;
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    $("password").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") checkPassword();
+    });
+
+    $("placeInput").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") confirmDate();
+    });
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeDatePopup();
+    });
+
+    // Click outside the popup to close
+    $("datePopupOverlay").addEventListener("click", (e) => {
+        if (e.target === e.currentTarget) closeDatePopup();
+    });
+});
+</script>
+
+</body>
+</html>
