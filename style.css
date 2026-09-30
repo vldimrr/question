@@ -406,22 +406,36 @@ video {
     color: #5b4b42;
     font-family: inherit;
     font-size: 16px; /* 16px stops iOS from zooming in on focus */
-    line-height: 1.2;
+    line-height: normal;
     outline: none;
     -webkit-appearance: none;
     appearance: none;
     transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
-/* iPhone date input fixes */
+/* ---- Date field: vertically centered on iPhone (Safari + in-app browsers) ---- */
 .popup-field input[type="date"] {
+    display: flex;
+    align-items: center;
     text-align: left;
+    padding: 0 14px;
     -webkit-min-logical-width: calc(100% - 28px);
+}
+
+.popup-field input[type="date"]::-webkit-datetime-edit {
+    display: flex;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+    line-height: normal;
 }
 
 .popup-field input[type="date"]::-webkit-date-and-time-value {
     text-align: left;
-    min-height: 1.2em;
+    margin: 0;
+    padding: 0;
+    min-height: 0;
+    line-height: normal;
 }
 
 .popup-field input[type="date"]::-webkit-calendar-picker-indicator {
